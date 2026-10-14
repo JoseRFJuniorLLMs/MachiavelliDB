@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="img/machiavelli-logo.jpg" alt="MachiavelliDB" width="220" />
+  <img src="img/machiavelli-logo.jpg" alt="MachiavelliDB" width="500" />
 </p>
 
 <h1 align="center">MachiavelliDB</h1>
