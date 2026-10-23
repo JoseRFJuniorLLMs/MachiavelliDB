@@ -1,0 +1,18 @@
+[package]
+name = "machiavelli-trinitas"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+machiavelli-core.workspace = true
+machiavelli-proto.workspace = true
+tonic.workspace = true
+serde_json.workspace = true
+hex.workspace = true
+[lints]
+workspace = true
+
+[dev-dependencies]
+tokio.workspace = true
+tokio-stream = { workspace = true, features = ["net"] }

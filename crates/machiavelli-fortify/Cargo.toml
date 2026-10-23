@@ -1,0 +1,11 @@
+[package]
+name = "machiavelli-fortify"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+ed25519-dalek.workspace = true
+blake3.workspace = true
+[lints]
+workspace = true

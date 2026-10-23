@@ -1,0 +1,19 @@
+[package]
+name = "machiavelli-symplectic"
+description = "SPEC-0001: forma simplética, matriz J, colchete de Poisson SIMD e integradores Störmer-Verlet / Yoshida-4"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

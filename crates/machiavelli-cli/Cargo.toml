@@ -1,0 +1,21 @@
+[package]
+name = "machiavelli-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+machiavelli-nash.workspace = true
+machiavelli-cfr.workspace = true
+machiavelli-core.workspace = true
+machiavelli-storage.workspace = true
+machiavelli-symplectic.workspace = true
+machiavelli-hamiltonian.workspace = true
+serde_json.workspace = true
+[[bin]]
+name = "machiavelli"
+path = "src/main.rs"
+[lints]
+workspace = true
+[dev-dependencies]
+tempfile.workspace = true

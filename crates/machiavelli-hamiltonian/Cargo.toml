@@ -1,0 +1,18 @@
+[package]
+name = "machiavelli-hamiltonian"
+description = "SPEC-0002: Hamiltoniano estratégico — Virtù (cinética), Fortuna e potencial adversarial, massa estratégica, selas e bacias"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+machiavelli-core.workspace = true
+machiavelli-symplectic.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true

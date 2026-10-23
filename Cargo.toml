@@ -1,0 +1,99 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "1.0.0-alpha.1"
+edition = "2024"
+rust-version = "1.89"
+license = "GPL-2.0-only"
+authors = ["Jose R F Junior"]
+repository = "https://github.com/JoseRFJuniorLLMs/MachiavelliDB"
+
+[workspace.dependencies]
+# Crates internos
+machiavelli-core = { path = "crates/machiavelli-core" }
+machiavelli-symplectic = { path = "crates/machiavelli-symplectic" }
+machiavelli-hamiltonian = { path = "crates/machiavelli-hamiltonian" }
+machiavelli-proto = { path = "crates/machiavelli-proto" }
+machiavelli-storage = { path = "crates/machiavelli-storage" }
+machiavelli-cow-arena = { path = "crates/machiavelli-cow-arena" }
+machiavelli-wal = { path = "crates/machiavelli-wal" }
+machiavelli-dikes = { path = "crates/machiavelli-dikes" }
+machiavelli-nash = { path = "crates/machiavelli-nash" }
+machiavelli-cfr = { path = "crates/machiavelli-cfr" }
+machiavelli-fog = { path = "crates/machiavelli-fog" }
+machiavelli-pareto = { path = "crates/machiavelli-pareto" }
+machiavelli-vcg = { path = "crates/machiavelli-vcg" }
+machiavelli-betrayal = { path = "crates/machiavelli-betrayal" }
+machiavelli-fortify = { path = "crates/machiavelli-fortify" }
+machiavelli-mandragola = { path = "crates/machiavelli-mandragola" }
+machiavelli-centaur = { path = "crates/machiavelli-centaur" }
+machiavelli-fortuna = { path = "crates/machiavelli-fortuna" }
+machiavelli-pql = { path = "crates/machiavelli-pql" }
+machiavelli-gpu = { path = "crates/machiavelli-gpu" }
+machiavelli-trinitas = { path = "crates/machiavelli-trinitas" }
+machiavelli-api = { path = "crates/machiavelli-api" }
+machiavelli-observatory = { path = "crates/machiavelli-observatory" }
+machiavelli-cli = { path = "crates/machiavelli-cli" }
+machiavelli-invariants = { path = "crates/machiavelli-invariants" }
+
+# Externos
+anyhow = "1"
+arc-swap = "1.7"
+axum = "0.8"
+blake3 = "1.8"
+bytes = "1"
+clap = { version = "4.5", features = ["derive", "env"] }
+crc32c = "0.6"
+criterion = { version = "0.5", default-features = false }
+ed25519-dalek = "2.1"
+futures = "0.3"
+hex = "0.4"
+libc = "0.2"
+memmap2 = "0.9"
+parking_lot = "0.12"
+pest = "2.8"
+pest_derive = "2.8"
+proptest = "1.5"
+prost = "0.14"
+protox = "0.9"
+rand = "0.9"
+rand_chacha = "0.9"
+rayon = "1.10"
+rkyv = { version = "0.8", features = ["uuid-1"] }
+rocksdb = { version = "0.24", default-features = false, features = ["lz4"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tempfile = "3"
+thiserror = "2"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "signal", "net"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+tonic = "0.14"
+tonic-prost = "0.14"
+tonic-prost-build = "0.14"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1.10", features = ["v4", "v7", "serde"] }
+
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+[workspace.lints.clippy]
+needless_range_loop = "allow"
+too_many_arguments = "allow"
+
+[profile.dev]
+opt-level = 1
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.release]
+opt-level = 3
+debug = "line-tables-only"
+codegen-units = 16
+
+[profile.bench]
+inherits = "release"

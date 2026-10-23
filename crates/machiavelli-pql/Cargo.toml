@@ -1,0 +1,12 @@
+[package]
+name = "machiavelli-pql"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+machiavelli-core.workspace = true
+pest.workspace = true
+pest_derive.workspace = true
+[lints]
+workspace = true

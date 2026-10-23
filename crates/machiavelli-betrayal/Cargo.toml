@@ -1,0 +1,13 @@
+[package]
+name = "machiavelli-betrayal"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+machiavelli-core.workspace = true
+machiavelli-invariants.workspace = true
+machiavelli-trinitas.workspace = true
+serde_json.workspace = true
+[lints]
+workspace = true

@@ -1,0 +1,11 @@
+[package]
+name = "machiavelli-dikes"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+machiavelli-core.workspace = true
+arc-swap.workspace = true
+[lints]
+workspace = true

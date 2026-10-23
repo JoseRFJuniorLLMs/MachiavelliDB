@@ -1,0 +1,12 @@
+[package]
+name = "machiavelli-cow-arena"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+memmap2.workspace = true
+tempfile.workspace = true
+arc-swap.workspace = true
+[lints]
+workspace = true

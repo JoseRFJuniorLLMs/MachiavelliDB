@@ -1,0 +1,6 @@
+name = "machiavelliProofs"
+version = "0.1.0"
+defaultTargets = ["Machiavelli"]
+
+[[lean_lib]]
+name = "Machiavelli"

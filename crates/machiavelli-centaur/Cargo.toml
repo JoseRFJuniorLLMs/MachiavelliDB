@@ -1,0 +1,19 @@
+[package]
+name = "machiavelli-centaur"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+machiavelli-core.workspace = true
+machiavelli-storage.workspace = true
+machiavelli-cow-arena.workspace = true
+machiavelli-fortuna.workspace = true
+machiavelli-dikes.workspace = true
+machiavelli-hamiltonian.workspace = true
+machiavelli-symplectic.workspace = true
+[lints]
+workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

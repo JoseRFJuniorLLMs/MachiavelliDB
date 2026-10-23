@@ -1,0 +1,28 @@
+[package]
+name = "machiavelli-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+machiavelli-proto.workspace = true
+tonic.workspace = true
+machiavelli-observatory.workspace = true
+serde.workspace = true
+machiavelli-cfr.workspace = true
+machiavelli-pql.workspace = true
+machiavelli-hamiltonian.workspace = true
+machiavelli-symplectic.workspace = true
+machiavelli-core.workspace = true
+machiavelli-storage.workspace = true
+axum.workspace = true
+tokio.workspace = true
+serde_json.workspace = true
+[[bin]]
+name = "machiavelli-server"
+path = "src/main.rs"
+[lints]
+workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

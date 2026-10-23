@@ -1,0 +1,33 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lo Stato · MachiavelliDB</title>
+<style>body{margin:0;background:#10131d;color:#e5e8ee;font:16px system-ui}main{max-width:1100px;margin:auto;padding:30px}h1{margin:0}p{color:#aab7cb}input,button{padding:10px;background:#202b3c;color:white;border:1px solid #495d7b;border-radius:6px}canvas{width:100%;height:480px;background:#151d2c;border:1px solid #29364b;margin:20px 0}pre{white-space:pre-wrap}label{display:inline-block;margin-right:12px}</style>
+<main><p>OBSERVATÓRIO LOCAL</p><h1>Lo Stato</h1><p>Posição q₀ × momento p₀. Cor indica exposição à Fortuna; tamanho indica Virtù. Coordenadas normalizadas por tanh.</p>
+<label>Token <input id="token" type="password" autocomplete="off"></label><button id="connect">Conectar</button><label> Atualizar a cada <select id="interval"><option value="1000">1 s</option><option value="5000">5 s</option></select></label>
+<p id="status">Aguardando conexão. Token mantido somente em memória nesta página.</p><canvas id="plot" width="1100" height="480"></canvas><pre id="details"></pre></main>
+<script>
+'use strict';
+const canvas=document.getElementById('plot'),gl=canvas.getContext('webgl2');
+const status=document.getElementById('status'),details=document.getElementById('details');
+let token='',nodes=[],timer;
+function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s}
+let program,buffer;
+if(gl){
+program=gl.createProgram();
+gl.attachShader(program,shader(gl.VERTEX_SHADER,'#version 300 es\nin vec4 state;out float risk;void main(){gl_Position=vec4(state.xy,0.,1.);gl_PointSize=5.+12.*state.w;risk=state.z;}'));
+gl.attachShader(program,shader(gl.FRAGMENT_SHADER,'#version 300 es\nprecision mediump float;in float risk;out vec4 color;void main(){if(length(gl_PointCoord-vec2(.5))>.5)discard;color=vec4(mix(vec3(.2,.8,.7),vec3(1.,.25,.25),risk),1.);}'));
+gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));
+buffer=gl.createBuffer();gl.useProgram(program);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+const location=gl.getAttribLocation(program,'state');gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,4,gl.FLOAT,false,0,0);
+}else status.textContent='WebGL 2 não disponível neste navegador.';
+function draw(){
+if(gl){gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(.08,.11,.17,1);gl.clear(gl.COLOR_BUFFER_BIT);
+const points=new Float32Array(nodes.flatMap(n=>[Math.tanh(n.phase.q[0]),Math.tanh(n.phase.p[0]),n.meta.fortuna_exposure,n.meta.virtu]));
+gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,points,gl.DYNAMIC_DRAW);gl.drawArrays(gl.POINTS,0,nodes.length);}
+}
+async function refresh(){
+try{const response=await fetch('/nodes',{headers:{Authorization:'Bearer '+token},cache:'no-store'});if(!response.ok)throw Error('HTTP '+response.status);
+nodes=await response.json();draw();status.textContent=nodes.length+' nós visíveis (limite de 100). '+new Date().toLocaleTimeString();
+details.textContent=nodes.map(n=>n.meta.id+' · '+n.meta.posture+' · H='+n.meta.hamiltonian_energy).join('\n');
+}catch(error){status.textContent='Falha ao consultar: '+error.message;}
+}
+document.getElementById('connect').onclick=()=>{token=document.getElementById('token').value;clearInterval(timer);refresh();timer=setInterval(refresh,Number(document.getElementById('interval').value));};
+</script></html>

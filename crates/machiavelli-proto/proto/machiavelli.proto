@@ -1,0 +1,17 @@
+syntax = "proto3";
+package machiavelli.v1;
+service Machiavelli {
+  rpc Health(Empty) returns (HealthReply);
+  rpc Get(NodeKey) returns (NodeRecord);
+  rpc Put(NodeRecord) returns (WriteReceipt);
+  rpc Delete(NodeKey) returns (WriteReceipt);
+  rpc Query(PqlQuery) returns (JsonReply);
+}
+message Empty {}
+message HealthReply { string mode = 1; uint64 nodes = 2; uint64 sequence = 3; }
+message NodeKey { string id = 1; }
+// Existing validated binary encodings; preserves IEEE-754 bits exactly.
+message NodeRecord { bytes metadata = 1; bytes phase = 2; }
+message WriteReceipt { uint64 sequence = 1; }
+message PqlQuery { string query = 1; }
+message JsonReply { string json = 1; }

@@ -1,0 +1,11 @@
+[package]
+name = "machiavelli-fortuna"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+rand.workspace = true
+rand_chacha.workspace = true
+[lints]
+workspace = true

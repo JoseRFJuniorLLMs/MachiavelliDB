@@ -1,0 +1,8 @@
+/target/
+**/*.rs.bk
+/data/
+/.machiavelli/
+*.profraw
+/docs/qualification/runs/*.tmp
+
+/lean/.lake/
