@@ -129,53 +129,7 @@ O perfil médio de estratégias converge com garantia matemática ($O(1/\sqrt{T}
 
 O MachiavelliDB segue a disciplina de ferro da família: Rust puro, zero *Garbage Collector*, *zero-copy deserialization* (`rkyv`), separação entre metadados táticos leves e tensores de payoff pesados, e isolamento em 24 *crates* organizados em 6 camadas estratégicas:
 
-~~~text
-                        +---------------------------------------+
-                        |       PQL / gRPC / Trinitas Bus       |
-                        |   (machiavelli-pql, machiavelli-api)  |
-                        +-------------------+-------------------+
-                                            |
-              +-----------------------------+-----------------------------+
-              |                                                           |
-              v                                                           v
-+---------------------------+                               +---------------------------+
-|      THE CENTAUR          |                               |    VIRTÙ RESOURCE KERNEL  |
-|   (Adversarial Daemon)    |                               |     (Zero-Sum Economy)    |
-|  - machiavelli-centaur    |                               |  - machiavelli-vcg        |
-|  - machiavelli-cfr        |                               |  - machiavelli-betrayal   |
-|  - machiavelli-fortuna    |                               |  - machiavelli-fortify    |
-|  - machiavelli-dikes      |                               |  - machiavelli-pareto     |
-+-------------+-------------+                               +-------------+-------------+
-              |                                                           |
-              +-----------------------------+-----------------------------+
-                                            |
-                                            v
-                        +---------------------------------------+
-                        |     SYMPLECTIC PHASE-SPACE ENGINE     |
-                        |  - machiavelli-symplectic             |
-                        |  - machiavelli-hamiltonian            |
-                        |  - machiavelli-nash                   |
-                        |  - machiavelli-fog (InfoSets)         |
-                        +-------------------+-------------------+
-                                            |
-                                            v
-                        +---------------------------------------+
-                        |   STORAGE, CoW ARENA & HARDWARE ACCEL |
-                        |  - machiavelli-core                   |
-                        |  - machiavelli-storage (RocksDB 12CF) |
-                        |  - machiavelli-cow-arena (mmap fork)  |
-                        |  - machiavelli-wal (Intent + Action)  |
-                        |  - machiavelli-gpu (CUDA CFR/Verlet)  |
-                        +-------------------+-------------------+
-                                            |
-                      +---------------------+---------------------+
-                      |                                           |
-                      v                                           v
-         +-------------------------+                 +-------------------------+
-         |   nietzsche-bridge      |                 |   heraclitus-bridge     |
-         | (Poincaré <-> PhaseSpc) |                 | (DurableIntent / HRKL)  |
-         +-------------------------+                 +-------------------------+
-~~~
+![Arquitetura estratégica do MachiavelliDB — diagrama com fundo branco](img/machiavellidb-arquitetura-branca.png)
 
 ### Mapa Completo dos 24 Crates
 
