@@ -1,5 +1,7 @@
 //! Bounded counterfactual risk scan. Produces candidate plans without execution.
-//! Uses private mmap pages and a reference harmonic rollout; MCTS is not claimed.
+//! Includes private mmap risk rollouts and a separate UCT planner for explicit models.
+pub mod mcts;
+pub mod planning;
 use machiavelli_core::{Deadline, NodeId};
 use machiavelli_cow_arena::Arena;
 use machiavelli_dikes::{Action, CompiledDike};

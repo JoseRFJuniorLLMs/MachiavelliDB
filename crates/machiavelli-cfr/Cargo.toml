@@ -1,12 +1,20 @@
 [package]
+autoexamples = false
 name = "machiavelli-cfr"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 [dependencies]
+blake3.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 machiavelli-core.workspace = true
 machiavelli-nash.workspace = true
 thiserror.workspace = true
 [lints]
 workspace = true
+
+[[example]]
+name = "cfr-qualification"
+path = "examples/qualification.rs"

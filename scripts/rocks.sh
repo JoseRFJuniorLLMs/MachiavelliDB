@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-export TMPDIR=/mnt/d/tmp
+export TMPDIR="${TMPDIR:-/mnt/d/tmp}"
 export CARGO_HOME="$HOME/.cargo"
 export RUSTUP_HOME="$HOME/.rustup"
 export CARGO_TARGET_DIR="$HOME/cargo-target/machiavelli"

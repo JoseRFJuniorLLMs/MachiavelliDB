@@ -5,6 +5,10 @@ edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 [dependencies]
+machiavelli-core.workspace = true
+machiavelli-symplectic.workspace = true
+rand.workspace = true
+rand_chacha.workspace = true
 thiserror.workspace = true
 [lints]
 workspace = true

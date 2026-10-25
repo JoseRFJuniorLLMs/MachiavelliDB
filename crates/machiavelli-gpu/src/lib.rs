@@ -1,5 +1,7 @@
 //! Deterministic CPU batch fallback and CUDA reference kernels.
-//! CUDA source is shipped for native integration; no CUDA runtime backend is selected.
+//! CUDA is an explicit Linux feature loading a separately compiled native library.
+#[cfg(all(feature = "cuda", target_os = "linux"))]
+pub mod cuda;
 use machiavelli_symplectic::{DiagonalKinetic, Integrator, Scheme, Separable, systems::Harmonic};
 pub const CUDA_SOURCE: &str = include_str!("../cuda/kernels.cu");
 pub fn verlet_batch(

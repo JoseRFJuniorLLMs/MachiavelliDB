@@ -3,12 +3,12 @@
 use arc_swap::ArcSwap;
 use machiavelli_core::{ContinentiaNode, NodeId};
 use std::sync::Arc;
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum Action {
     Isolate(NodeId),
     Fortify(NodeId),
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct CompiledDike {
     subject: NodeId,
     energy_above: f64,
@@ -26,22 +26,40 @@ impl CompiledDike {
         saved_virtu: f64,
         actions: Vec<Action>,
     ) -> Result<Self, &'static str> {
-        if subject.is_nil()
-            || !energy_above.is_finite()
-            || !saved_virtu.is_finite()
-            || saved_virtu < 0.0
-            || actions.is_empty()
-        {
-            return Err("invalid dike");
-        }
-        Ok(Self {
+        let plan = Self {
             subject,
             energy_above,
             expires_ms,
             topology_sequence,
             saved_virtu,
             actions,
-        })
+        };
+        plan.validate()?;
+        Ok(plan)
+    }
+    pub fn subject(&self) -> NodeId {
+        self.subject
+    }
+    pub fn references(&self, id: NodeId) -> bool {
+        self.subject == id
+            || self.actions.iter().any(|action| match action {
+                Action::Isolate(n) | Action::Fortify(n) => *n == id,
+            })
+    }
+    pub fn validate(&self) -> Result<(), &'static str> {
+        if self.subject.is_nil()
+            || !self.energy_above.is_finite()
+            || !self.saved_virtu.is_finite()
+            || self.saved_virtu < 0.0
+            || self.actions.is_empty()
+            || self.actions.len() > 1024
+            || self.actions.iter().any(|action| match action {
+                Action::Isolate(n) | Action::Fortify(n) => n.is_nil(),
+            })
+        {
+            return Err("invalid dike");
+        }
+        Ok(())
     }
     pub fn actions(&self) -> &[Action] {
         &self.actions

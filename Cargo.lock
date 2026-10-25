@@ -910,14 +910,18 @@ name = "machiavelli-api"
 version = "1.0.0-alpha.1"
 dependencies = [
  "axum",
+ "hex",
+ "machiavelli-centaur",
  "machiavelli-cfr",
  "machiavelli-core",
+ "machiavelli-fortify",
  "machiavelli-hamiltonian",
  "machiavelli-observatory",
  "machiavelli-pql",
  "machiavelli-proto",
  "machiavelli-storage",
  "machiavelli-symplectic",
+ "machiavelli-trinitas",
  "serde",
  "serde_json",
  "tempfile",
@@ -939,22 +943,32 @@ dependencies = [
 name = "machiavelli-centaur"
 version = "1.0.0-alpha.1"
 dependencies = [
+ "machiavelli-cfr",
  "machiavelli-core",
  "machiavelli-cow-arena",
  "machiavelli-dikes",
  "machiavelli-fortuna",
+ "machiavelli-gpu",
  "machiavelli-hamiltonian",
+ "machiavelli-nash",
  "machiavelli-storage",
  "machiavelli-symplectic",
+ "rand 0.9.5",
+ "rand_chacha",
+ "serde",
  "tempfile",
+ "thiserror",
 ]
 
 [[package]]
 name = "machiavelli-cfr"
 version = "1.0.0-alpha.1"
 dependencies = [
+ "blake3",
  "machiavelli-core",
  "machiavelli-nash",
+ "serde",
+ "serde_json",
  "thiserror",
 ]
 
@@ -962,6 +976,7 @@ dependencies = [
 name = "machiavelli-cli"
 version = "1.0.0-alpha.1"
 dependencies = [
+ "machiavelli-centaur",
  "machiavelli-cfr",
  "machiavelli-core",
  "machiavelli-hamiltonian",
@@ -1000,12 +1015,17 @@ version = "1.0.0-alpha.1"
 dependencies = [
  "arc-swap",
  "machiavelli-core",
+ "serde",
 ]
 
 [[package]]
 name = "machiavelli-fog"
 version = "1.0.0-alpha.1"
 dependencies = [
+ "machiavelli-core",
+ "machiavelli-symplectic",
+ "rand 0.9.5",
+ "rand_chacha",
  "thiserror",
 ]
 
@@ -1029,6 +1049,7 @@ dependencies = [
 name = "machiavelli-gpu"
 version = "1.0.0-alpha.1"
 dependencies = [
+ "libc",
  "machiavelli-symplectic",
 ]
 
@@ -1098,7 +1119,11 @@ name = "machiavelli-storage"
 version = "1.0.0-alpha.1"
 dependencies = [
  "blake3",
+ "machiavelli-cfr",
  "machiavelli-core",
+ "machiavelli-dikes",
+ "machiavelli-fog",
+ "machiavelli-vcg",
  "machiavelli-wal",
  "rocksdb",
  "serde",
@@ -1120,10 +1145,18 @@ dependencies = [
 name = "machiavelli-trinitas"
 version = "1.0.0-alpha.1"
 dependencies = [
+ "blake3",
+ "ed25519-dalek",
  "hex",
  "machiavelli-core",
+ "machiavelli-dikes",
+ "machiavelli-fog",
+ "machiavelli-fortify",
  "machiavelli-proto",
+ "machiavelli-storage",
+ "serde",
  "serde_json",
+ "tempfile",
  "tokio",
  "tokio-stream",
  "tonic",

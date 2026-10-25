@@ -4,6 +4,7 @@ package heraclitus.v1;
 // the proposed privileged AdminIntent API and does not return a Merkle receipt.
 service Heraclitus {
   rpc Append(AppendRequest) returns (AppendResponse);
+  rpc Admin(AdminRequest) returns (AdminResponse);
 }
 message AppendRequest {
   string agent_id = 1; string session_id = 2; string kind = 3; bytes content = 4;
@@ -11,3 +12,5 @@ message AppendRequest {
   map<string,string> attrs = 8; repeated string parents = 9; string idempotency_key = 10;
 }
 message AppendResponse { uint64 lsn = 1; bool deduplicated = 2; string event_id = 3; }
+message AdminRequest { string op = 1; string arg = 2; }
+message AdminResponse { bool ok = 1; string message = 2; }

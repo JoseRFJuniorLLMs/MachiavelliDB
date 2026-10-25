@@ -24,16 +24,20 @@
 
 ---
 
-## Estado da implementação — 22/10/2026
+## Estado da implementação — 25/10/2026
 
 O workspace contém os 25 crates planejados, incluindo invariants. Há armazenamento
-WAL e RocksDB opcional, arena mmap CoW, CFR+ extensivo (Kuhn/Leduc), módulos econômicos,
+WAL e RocksDB opcional, registros estratégicos duráveis, arena mmap CoW, CFR+ extensivo
+com checkpoints retomáveis (Kuhn/Leduc), planejamento UCT/MCTS, filtro de partículas,
+módulos econômicos,
 PQL, REST/gRPC autenticados, observatório WebGL e provas Lean do modelo exato.
 
 A presença dos crates não significa que todas as 18 SPECs estejam concluídas.
 Mutações táticas externas continuam bloqueadas até confirmar a autorização durável;
 CUDA tem fontes e fallback CPU, sem runtime de GPU qualificado. Consulte o
-[estado verificável e gates medidos](docs/STATUS.md) e a [operação local](docs/QUICKSTART.md).
+[estado verificável e gates medidos](docs/STATUS.md), a [operação local](docs/QUICKSTART.md)
+os [formatos de persistência e transações](docs/STORAGE.md) e o
+[planejamento MCTS/filtro de partículas](docs/PLANNING.md).
 
 ---
 

@@ -2,8 +2,10 @@
 //! Information sets share one strategy. Best responses optimize over information
 //! sets, never over hidden histories. Chance and terminals are explicit.
 use machiavelli_core::Deadline;
+#[path = "deep.rs"]
+pub mod deep;
 use std::collections::{BTreeMap, BTreeSet};
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum Tree {
     Terminal(f64),
     Chance(Vec<(f64, Tree)>),
@@ -13,13 +15,13 @@ pub enum Tree {
         actions: Vec<(String, Tree)>,
     },
 }
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize)]
 enum Node {
     Terminal(f64),
     Chance(Vec<(f64, usize)>),
     Decision { info: usize, children: Vec<usize> },
 }
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize)]
 struct Info {
     key: String,
     player: usize,
@@ -31,6 +33,7 @@ pub struct Game {
     nodes: Vec<Node>,
     infos: Vec<Info>,
     root: usize,
+    digest: [u8; 32],
 }
 #[derive(Debug)]
 pub struct GameError(pub &'static str);
@@ -45,6 +48,31 @@ pub struct Profile {
     pub value: f64,
     pub exploitability: f64,
     pub iterations: usize,
+    pub checkpoint: Checkpoint,
+}
+/// A game-bound CFR+ checkpoint. Regrets and linear averaging weights survive restart.
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Checkpoint {
+    pub game_digest: [u8; 32],
+    pub iterations: u64,
+    pub infos: BTreeMap<String, InfoCheckpoint>,
+}
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct InfoCheckpoint {
+    pub player: u8,
+    pub actions: Vec<String>,
+    pub regrets: Vec<f64>,
+    pub strategy_sum: Vec<f64>,
+}
+impl Checkpoint {
+    pub fn infoset_id(&self, name: &str) -> machiavelli_core::InfosetHash {
+        let mut key = b"MachiavelliDB/CFR+/checkpoint/v1".to_vec();
+        key.extend_from_slice(&self.game_digest);
+        key.extend_from_slice(name.as_bytes());
+        machiavelli_core::InfosetHash::of(&key)
+    }
 }
 impl Game {
     pub fn new(tree: Tree) -> Result<Self, GameError> {
@@ -52,8 +80,14 @@ impl Game {
             nodes: Vec::new(),
             infos: Vec::new(),
             root: 0,
+            digest: [0; 32],
         };
         game.root = game.build(tree, &[Vec::new(), Vec::new()], 0)?;
+        game.digest = *blake3::hash(
+            &serde_json::to_vec(&(&game.nodes, &game.infos, game.root))
+                .expect("validated finite game"),
+        )
+        .as_bytes();
         Ok(game)
     }
     fn build(
@@ -321,13 +355,87 @@ impl Game {
         }
         self.value(self.root, profile, player, &choices)
     }
+    pub fn initial_checkpoint(&self) -> Checkpoint {
+        let game_digest = self.digest;
+        Checkpoint {
+            game_digest,
+            iterations: 0,
+            infos: self
+                .infos
+                .iter()
+                .map(|i| {
+                    (
+                        i.key.clone(),
+                        InfoCheckpoint {
+                            player: i.player as u8,
+                            actions: i.actions.clone(),
+                            regrets: vec![0.0; i.actions.len()],
+                            strategy_sum: vec![0.0; i.actions.len()],
+                        },
+                    )
+                })
+                .collect(),
+        }
+    }
     pub fn solve(&self, iterations: usize, deadline: &Deadline) -> Result<Profile, GameError> {
-        if iterations == 0 || iterations > 1_000_000 {
+        self.resume(&self.initial_checkpoint(), iterations, deadline)
+    }
+    pub fn resume(
+        &self,
+        checkpoint: &Checkpoint,
+        iterations: usize,
+        deadline: &Deadline,
+    ) -> Result<Profile, GameError> {
+        if iterations == 0
+            || iterations > 1_000_000
+            || checkpoint
+                .iterations
+                .checked_add(iterations as u64)
+                .is_none_or(|n| n > 1_000_000_000_000)
+        {
             return Err(GameError("invalid iteration limit"));
         }
+        let initial = self.initial_checkpoint();
+        if checkpoint.game_digest != initial.game_digest
+            || checkpoint.infos.len() != self.infos.len()
+        {
+            return Err(GameError("checkpoint belongs to another game"));
+        }
+        let mut regrets = Vec::new();
+        let mut sums = Vec::new();
+        for info in &self.infos {
+            let saved = checkpoint
+                .infos
+                .get(&info.key)
+                .ok_or(GameError("missing checkpoint information set"))?;
+            if saved.player as usize != info.player
+                || saved.actions != info.actions
+                || saved.regrets.len() != info.actions.len()
+                || saved.strategy_sum.len() != info.actions.len()
+                || saved
+                    .regrets
+                    .iter()
+                    .chain(&saved.strategy_sum)
+                    .any(|v| !v.is_finite() || *v < 0.0)
+            {
+                return Err(GameError("invalid checkpoint information set"));
+            }
+            if checkpoint.iterations == 0
+                && saved
+                    .regrets
+                    .iter()
+                    .chain(&saved.strategy_sum)
+                    .any(|v| *v != 0.0)
+            {
+                return Err(GameError("nonempty zero-iteration checkpoint"));
+            }
+            regrets.push(saved.regrets.clone());
+            sums.push(saved.strategy_sum.clone());
+        }
         let mut strategy = self.uniform();
-        let mut regrets: Vec<Vec<f64>> = strategy.iter().map(|v| vec![0.0; v.len()]).collect();
-        let mut sums = regrets.clone();
+        for (r, s) in regrets.iter().zip(&mut strategy) {
+            super::matching(r, s);
+        }
         let mut completed = 0;
         'outer: for t in 1..=iterations {
             // One iteration is transactional: deadline discards both player's partial updates.
@@ -360,7 +468,13 @@ impl Game {
             }
             regrets = next_regrets;
             strategy = next_strategy;
-            self.average(self.root, [1.0, 1.0], t as f64, &strategy, &mut sums);
+            self.average(
+                self.root,
+                [1.0, 1.0],
+                (checkpoint.iterations + t as u64) as f64,
+                &strategy,
+                &mut sums,
+            );
             completed = t;
         }
         let mut average = self.uniform();
@@ -370,7 +484,15 @@ impl Game {
         let value = self.value(self.root, &average, 0, &BTreeMap::new());
         let exploitability =
             (self.best_response(0, &average) + self.best_response(1, &average)).max(0.0);
+        let mut saved = initial;
+        saved.iterations = checkpoint.iterations + completed as u64;
+        for (i, info) in self.infos.iter().enumerate() {
+            let state = saved.infos.get_mut(&info.key).unwrap();
+            state.regrets = regrets[i].clone();
+            state.strategy_sum = sums[i].clone();
+        }
         Ok(Profile {
+            checkpoint: saved,
             strategies: self
                 .infos
                 .iter()
@@ -418,7 +540,7 @@ pub fn kuhn() -> Game {
 /// fixed bets 2/4 and at most two bets/raises per round. Equivalent rank deals
 /// are collapsed with their exact card-count probabilities.
 pub fn leduc() -> Game {
-    #[derive(Clone)]
+    #[derive(Clone, serde::Serialize)]
     struct State {
         cards: [usize; 2],
         board: Option<usize>,
@@ -642,5 +764,41 @@ mod defense_tests {
         assert!(result.exploitability < 1e-3);
         assert!(result.value.abs() < 1e-3);
         assert_eq!(result.strategies.len(), 2);
+    }
+}
+#[cfg(test)]
+mod checkpoint_tests {
+    use super::*;
+    #[test]
+    fn resumed_cfr_matches_uninterrupted_training_exactly() {
+        let game = kuhn();
+        let first = game.solve(500, &Deadline::none()).unwrap();
+        let bytes = serde_json::to_vec(&first.checkpoint).unwrap();
+        let checkpoint: Checkpoint = serde_json::from_slice(&bytes).unwrap();
+        let resumed = game.resume(&checkpoint, 500, &Deadline::none()).unwrap();
+        let continuous = game.solve(1000, &Deadline::none()).unwrap();
+        assert_eq!(resumed.checkpoint, continuous.checkpoint);
+        assert_eq!(resumed.strategies, continuous.strategies);
+        assert_eq!(resumed.exploitability, continuous.exploitability);
+        assert_eq!(resumed.iterations, 500);
+    }
+    #[test]
+    fn incompatible_or_invalid_checkpoints_are_rejected() {
+        let game = kuhn();
+        let original = game.solve(10, &Deadline::none()).unwrap().checkpoint;
+        let mut changed = original.clone();
+        changed.game_digest[0] ^= 1;
+        assert!(game.resume(&changed, 1, &Deadline::none()).is_err());
+        let mut changed = original.clone();
+        changed.infos.values_mut().next().unwrap().regrets[0] = f64::NAN;
+        assert!(game.resume(&changed, 1, &Deadline::none()).is_err());
+        let mut changed = original.clone();
+        changed.infos.values_mut().next().unwrap().actions.reverse();
+        assert!(game.resume(&changed, 1, &Deadline::none()).is_err());
+        let expired = game
+            .resume(&original, 100, &Deadline::from_millis(0))
+            .unwrap();
+        assert_eq!(expired.checkpoint, original);
+        assert_eq!(expired.iterations, 0);
     }
 }

@@ -4,8 +4,17 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
+[features]
+cuda = ["dep:machiavelli-gpu", "machiavelli-gpu/cuda"]
 [dependencies]
+machiavelli-gpu = {workspace=true,optional=true}
+rand.workspace = true
+rand_chacha.workspace = true
+serde.workspace = true
+thiserror.workspace = true
 machiavelli-core.workspace = true
+machiavelli-cfr.workspace = true
+machiavelli-nash.workspace = true
 machiavelli-storage.workspace = true
 machiavelli-cow-arena.workspace = true
 machiavelli-fortuna.workspace = true

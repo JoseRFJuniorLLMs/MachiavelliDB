@@ -7,6 +7,13 @@ rust-version.workspace = true
 [dependencies]
 machiavelli-core.workspace = true
 machiavelli-proto.workspace = true
+machiavelli-storage.workspace = true
+machiavelli-dikes.workspace = true
+machiavelli-fortify.workspace = true
+machiavelli-fog.workspace = true
+serde.workspace = true
+blake3.workspace = true
+tokio.workspace = true
 tonic.workspace = true
 serde_json.workspace = true
 hex.workspace = true
@@ -14,5 +21,6 @@ hex.workspace = true
 workspace = true
 
 [dev-dependencies]
-tokio.workspace = true
+tempfile.workspace = true
+ed25519-dalek.workspace = true
 tokio-stream = { workspace = true, features = ["net"] }

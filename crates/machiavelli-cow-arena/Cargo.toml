@@ -1,4 +1,5 @@
 [package]
+autoexamples = false
 name = "machiavelli-cow-arena"
 version.workspace = true
 edition.workspace = true
@@ -10,3 +11,7 @@ tempfile.workspace = true
 arc-swap.workspace = true
 [lints]
 workspace = true
+
+[[example]]
+name = "cow-arena-qualification"
+path = "examples/qualification.rs"

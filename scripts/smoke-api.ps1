@@ -51,6 +51,14 @@ try {
         if([int]$_.Exception.Response.StatusCode -ne 409){throw}
     }
 
+    $mcts=Invoke-RestMethod "$base/pql" -Method Post -ContentType 'application/json' -Body (@{query="PRINCE MCTS $id ITERATIONS 512 HORIZON 4 SEED 42 DEADLINE 1000"}|ConvertTo-Json)
+    if($mcts.persisted -ne $false -or $mcts.source_sequence -ne 1 -or $mcts.search.iterations -ne 512){throw 'MCTS planning failed'}
+    if($mcts.search.selected_action -notin @('hold','damp','retreat')){throw 'MCTS returned an illegal recommendation'}
+    if((Invoke-RestMethod "$base/nodes/$id").phase.q[0] -ne 0.3 -or (Invoke-RestMethod "$base/health").sequence -ne 1){throw 'MCTS mutated live state'}
+    try {
+        Invoke-RestMethod "$base/pql" -Method Post -ContentType 'application/json' -Body (@{query="PRINCE MCTS $([Guid]::NewGuid()) ITERATIONS 1 HORIZON 1 SEED 0"}|ConvertTo-Json)|Out-Null
+        throw 'unknown MCTS target accepted'
+    } catch { if([int]$_.Exception.Response.StatusCode -ne 404){throw} }
     $node.phase.q=@()
     try {
         Invoke-RestMethod "$base/nodes" -Method Post -ContentType 'application/json' -Body ($node|ConvertTo-Json -Depth 10 -Compress)|Out-Null
@@ -59,6 +67,20 @@ try {
         if([int]$_.Exception.Response.StatusCode -ne 422){throw}
     }
     if((Invoke-RestMethod "$base/health").sequence -ne 1){throw 'failed write was committed'}
+    # Transação HTTP com escrita em lote e uma única sequência durável.
+    $otherId=[Guid]::NewGuid().ToString()
+    $node.meta.id=$otherId; $node.phase.q=@(0.4)
+    $batch=@{expected_sequence=1;operations=@(@{operation='put';value=$node})}|ConvertTo-Json -Depth 20 -Compress
+    $committed=Invoke-RestMethod "$base/transactions" -Method Post -ContentType 'application/json' -Body $batch
+    if($committed.sequence -ne 2){throw 'batch sequence differs'}
+    try {
+        Invoke-RestMethod "$base/transactions" -Method Post -ContentType 'application/json' -Body $batch|Out-Null
+        throw 'stale transaction accepted'
+    } catch { if([int]$_.Exception.Response.StatusCode -ne 409){throw} }
+    $strategic=Invoke-RestMethod "$base/strategic?at_sequence=2"
+    if($strategic.sequence -ne 2 -or $strategic.records.Count -ne 0){throw 'strategic snapshot query failed'}
+    $adjacency=Invoke-RestMethod "$base/nodes/$otherId/adjacency"
+    if($adjacency.sequence -ne 2 -or $adjacency.adjacency.Count -ne 0){throw 'adjacency query failed'}
     # Arrêt abrupt de notre propre processus de test, pour vérifier la reprise.
     Stop-Process -Id $process.Id
     $process.WaitForExit()
@@ -70,8 +92,8 @@ try {
     & 'D:\cargo-target\debug\machiavelli.exe' $testRoot delete $id | Out-Null
     if($LASTEXITCODE -ne 0){throw 'delete failed'}
     $stats=& 'D:\cargo-target\debug\machiavelli.exe' $testRoot stats | ConvertFrom-Json
-    if($stats.nodes -ne 0 -or $stats.sequence -ne 2){throw 'delete not durable'}
-    Write-Output "PASS: REST write/read/validation + process-exit recovery + CLI delete. Test data: $testRoot"
+    if($stats.nodes -ne 1 -or $stats.sequence -ne 3){throw 'delete not durable'}
+    Write-Output "PASS: authenticated REST, PQL/CFR/MCTS, atomic batches, stale-write rejection, process-exit recovery and CLI delete. Test data: $testRoot"
 } finally {
     $env:MACHIAVELLI_TOKEN=$previousToken
     $PSDefaultParameterValues.Remove('Invoke-RestMethod:Headers')

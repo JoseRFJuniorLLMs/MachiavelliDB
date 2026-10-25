@@ -4,7 +4,13 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
+[features]
+cuda = ["machiavelli-centaur/cuda"]
 [dependencies]
+machiavelli-centaur.workspace = true
+machiavelli-trinitas.workspace = true
+machiavelli-fortify.workspace = true
+hex.workspace = true
 machiavelli-proto.workspace = true
 tonic.workspace = true
 machiavelli-observatory.workspace = true

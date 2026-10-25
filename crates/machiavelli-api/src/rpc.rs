@@ -162,6 +162,31 @@ mod tests {
         let json = client.query(query).await.unwrap().into_inner().json;
         let rows: serde_json::Value = serde_json::from_str(&json).unwrap();
         assert_eq!(rows.as_array().unwrap().len(), 1);
+        let plan = client
+            .query(request(pb::PqlQuery {
+                query: format!(
+                    "PRINCE MCTS {} ITERATIONS 100 HORIZON 2 SEED 7 DEADLINE 10000",
+                    node.meta.id
+                ),
+            }))
+            .await
+            .unwrap()
+            .into_inner()
+            .json;
+        let plan: serde_json::Value = serde_json::from_str(&plan).unwrap();
+        assert_eq!(plan["persisted"], false);
+        assert_eq!(plan["source_sequence"], 1);
+        assert_eq!(plan["search"]["iterations"], 100);
+        let mut check = tonic::Request::new(pb::NodeKey {
+            id: node.meta.id.to_string(),
+        });
+        check
+            .metadata_mut()
+            .insert("authorization", format!("Bearer {token}").parse().unwrap());
+        assert_eq!(
+            client.get(check).await.unwrap().into_inner().phase,
+            record.phase
+        );
         server.abort();
         let _ = server.await;
     }

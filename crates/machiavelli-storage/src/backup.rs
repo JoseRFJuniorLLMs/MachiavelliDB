@@ -5,6 +5,8 @@ use super::*;
 struct Manifest {
     version: u32,
     nodes: usize,
+    #[serde(default)]
+    strategic_records: usize,
     source_sequence: u64,
     wal_digest: String,
 }
@@ -32,17 +34,55 @@ fn file_digest(path: impl AsRef<Path>) -> Result<String, StorageError> {
     }
     Ok(hash.finalize().to_hex().to_string())
 }
+// Build a new, locked destination and publish its completion marker only after
+// restoring final postures. This preserves edges attached before fortification.
+fn populate(
+    snapshot: &Snapshot,
+    mut commit: impl FnMut(&[Mutation]) -> Result<u64, StorageError>,
+) -> Result<(), StorageError> {
+    for node in snapshot.nodes() {
+        let mut initial = node.clone();
+        if matches!(
+            initial.meta.posture,
+            StrategicPosture::Fortified | StrategicPosture::Betrayed
+        ) {
+            initial.meta.posture = StrategicPosture::Expanding;
+        }
+        commit(&[Mutation::Put(initial)])?;
+    }
+    for operation in snapshot.strategy.operations() {
+        commit(&[operation])?;
+    }
+    for node in snapshot.nodes() {
+        if matches!(
+            node.meta.posture,
+            StrategicPosture::Fortified | StrategicPosture::Betrayed
+        ) {
+            commit(&[Mutation::Put(node.clone())])?;
+        }
+    }
+    Ok(())
+}
 pub fn backup(snapshot: &Snapshot, destination: impl AsRef<Path>) -> Result<(), StorageError> {
+    // A portable snapshot changes sequence and cannot clone an active consumer
+    // journal safely. Use the native RocksDB directory for disaster recovery.
+    if snapshot
+        .records()
+        .any(|r| matches!(r, StrategicRecord::Sync { .. }))
+    {
+        return Err(StorageError::Rejected(
+            "portable backup of Trinitas journals requires an explicit identity/sequence migration",
+        ));
+    }
     let destination = destination.as_ref();
     std::fs::create_dir(destination)?;
     let mut store = WalStore::open(destination)?;
-    for node in snapshot.nodes() {
-        store.commit(&[Mutation::Put(node.clone())])?;
-    }
+    populate(snapshot, |ops| store.commit(ops))?;
     drop(store);
     let manifest = Manifest {
-        version: 1,
+        version: 2,
         nodes: snapshot.len(),
+        strategic_records: snapshot.strategic_len(),
         source_sequence: snapshot.sequence(),
         wal_digest: file_digest(destination.join("machiavelli.wal"))?,
     };
@@ -58,7 +98,8 @@ pub fn restore(
 ) -> Result<Store, StorageError> {
     let source = source.as_ref();
     let manifest: Manifest = serde_json::from_slice(&std::fs::read(source.join("COMPLETE"))?)?;
-    if manifest.version != 1 || file_digest(source.join("machiavelli.wal"))? != manifest.wal_digest
+    if !matches!(manifest.version, 1 | 2)
+        || file_digest(source.join("machiavelli.wal"))? != manifest.wal_digest
     {
         return Err(StorageError::Rejected(
             "invalid backup manifest or checksum",
@@ -66,15 +107,16 @@ pub fn restore(
     }
     let original = WalStore::open(source)?;
     let snapshot = original.snapshot();
-    if snapshot.len() != manifest.nodes {
+    if original.recovered_bytes() != 0
+        || snapshot.len() != manifest.nodes
+        || snapshot.strategic_len() != manifest.strategic_records
+    {
         return Err(StorageError::Rejected("backup count mismatch"));
     }
     let destination = destination.as_ref();
     std::fs::create_dir(destination)?;
     let mut store = Store::open(destination)?;
-    for node in snapshot.nodes() {
-        store.commit(&[Mutation::Put(node.clone())])?;
-    }
+    populate(&snapshot, |ops| store.commit(ops))?;
     write_synced(
         destination.join("RESTORED"),
         &serde_json::to_vec(&manifest)?,

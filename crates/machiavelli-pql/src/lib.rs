@@ -7,7 +7,7 @@ use pest_derive::Parser;
 #[grammar_inline = r#"
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 query = { SOI ~ command ~ deadline? ~ EOI }
-command = _{ scout | wargame | fortuna | dike | fortify | ally | betray | deceive | conquer | tribute | prince }
+command = _{ scout | wargame | fortuna | dike | fortify | ally | betray | deceive | conquer | tribute | prince_mcts | prince }
 id = @{ ASCII_HEX_DIGIT{8} ~ "-" ~ ASCII_HEX_DIGIT{4} ~ "-" ~ ASCII_HEX_DIGIT{4} ~ "-" ~ ASCII_HEX_DIGIT{4} ~ "-" ~ ASCII_HEX_DIGIT{12} }
 uint = @{ ASCII_DIGIT+ }
 number = @{ "-"? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? ~ (("e"|"E") ~ ("+"|"-")? ~ ASCII_DIGIT+)? }
@@ -21,6 +21,7 @@ betray = { "BETRAY" ~ id }
 deceive = { "DECEIVE" ~ id }
 conquer = { "CONQUER" ~ id }
 tribute = { "TRIBUTE" ~ id ~ "AMOUNT" ~ number }
+prince_mcts = { "PRINCE" ~ "MCTS" ~ id ~ "ITERATIONS" ~ uint ~ "HORIZON" ~ uint ~ "SEED" ~ uint }
 prince = { "PRINCE" ~ "KUHN" ~ "ITERATIONS" ~ uint }
 deadline = { "DEADLINE" ~ uint }
 "#]
@@ -53,6 +54,12 @@ pub enum Command {
     Tribute {
         target: NodeId,
         amount: f64,
+    },
+    PrinceMcts {
+        target: NodeId,
+        iterations: usize,
+        horizon: usize,
+        seed: u64,
     },
     PrinceKuhn {
         iterations: usize,
@@ -138,6 +145,19 @@ pub fn parse(input: &str) -> Result<Query, String> {
                 amount,
             }
         }
+        Rule::prince_mcts => {
+            let iterations = uint(1)?;
+            let horizon = uint(2)?;
+            if iterations == 0 || iterations > 100000 || horizon == 0 || horizon > 32 {
+                return Err("MCTS requires iterations 1..100000 and horizon 1..32".into());
+            }
+            Command::PrinceMcts {
+                target: id(0)?,
+                iterations: iterations as usize,
+                horizon: horizon as usize,
+                seed: uint(3)?,
+            }
+        }
         Rule::prince => {
             let n = uint(0)?;
             if n == 0 || n > 1_000_000 {
@@ -152,6 +172,7 @@ pub fn parse(input: &str) -> Result<Query, String> {
     let expected_tokens = match rule {
         Rule::scout | Rule::fortify | Rule::betray | Rule::deceive | Rule::conquer => 2,
         Rule::wargame | Rule::dike => 6,
+        Rule::prince_mcts => 9,
         _ => 4,
     };
     let mut has_deadline = false;
@@ -215,5 +236,42 @@ mod tests {
         ] {
             assert!(parse(&command).is_err(), "{command}");
         }
+    }
+}
+#[cfg(test)]
+mod mcts_tests {
+    use super::*;
+    const ID: &str = "6a54d3ce-57db-476e-bc63-4d26baf20450";
+    #[test]
+    fn mcts_budget_and_seed_are_parsed_without_weakening_token_bounds() {
+        let query = parse(&format!(
+            "PRINCE MCTS {ID} ITERATIONS 2000 HORIZON 8 SEED 42 DEADLINE 1000"
+        ))
+        .unwrap();
+        assert_eq!(
+            query.command,
+            Command::PrinceMcts {
+                target: ID.parse().unwrap(),
+                iterations: 2000,
+                horizon: 8,
+                seed: 42
+            }
+        );
+        for suffix in [
+            "ITERATIONS 0 HORIZON 8 SEED 0",
+            "ITERATIONS 100001 HORIZON 8 SEED 0",
+            "ITERATIONS 1 HORIZON 33 SEED 0",
+            "ITERATIONS 1 HORIZON 0 SEED 0",
+            "ITERATIONS1 HORIZON 8 SEED 0",
+            "ITERATIONS 1 HORIZON 8 SEED -1",
+        ] {
+            assert!(parse(&format!("PRINCE MCTS {ID} {suffix}")).is_err());
+        }
+        assert!(
+            parse(&format!(
+                "PRINCE MCTS {ID} ITERATIONS 1 HORIZON 1 SEED 18446744073709551615"
+            ))
+            .is_ok()
+        );
     }
 }

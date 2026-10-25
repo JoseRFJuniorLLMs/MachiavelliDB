@@ -20,10 +20,11 @@ pub struct Solution {
     pub deadline_reached: bool,
 }
 fn matching(regrets: &[f64], out: &mut [f64]) {
-    let sum: f64 = regrets.iter().sum();
-    if sum > 0.0 {
+    let scale = regrets.iter().copied().fold(0.0_f64, f64::max);
+    if scale > 0.0 {
+        let sum: f64 = regrets.iter().map(|r| r / scale).sum();
         for (p, r) in out.iter_mut().zip(regrets) {
-            *p = r / sum;
+            *p = (r / scale) / sum;
         }
     } else {
         let n = out.len() as f64;

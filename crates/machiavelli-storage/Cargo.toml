@@ -7,6 +7,10 @@ rust-version.workspace = true
 [features]
 rocksdb-backend = ["dep:rocksdb"]
 [dependencies]
+machiavelli-dikes.workspace = true
+machiavelli-fog.workspace = true
+machiavelli-cfr.workspace = true
+machiavelli-vcg.workspace = true
 blake3.workspace = true
 rocksdb = { workspace = true, optional = true }
 machiavelli-core.workspace = true

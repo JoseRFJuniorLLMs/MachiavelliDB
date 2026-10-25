@@ -1,5 +1,7 @@
 //! Bayesian belief snapshots. Public observation keys group hidden hypotheses;
 //! downstream planners receive the posterior rather than a selected hidden state.
+pub mod particles;
+pub use particles::{ParticleError, ParticleFilter};
 #[derive(Debug, thiserror::Error)]
 #[error("{0}")]
 pub struct BeliefError(&'static str);

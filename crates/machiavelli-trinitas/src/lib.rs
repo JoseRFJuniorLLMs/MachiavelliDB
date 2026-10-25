@@ -1,5 +1,10 @@
 //! Explicit separation of ordinary audit append from privileged execution tokens.
-//! The current Heraclitus wire contract cannot authorize external side effects.
+//! External intent v1 uses authenticated Admin RPCs and a durable local outbox.
+pub mod actions;
+pub mod coordinator;
+pub mod external;
+#[cfg(test)]
+mod recovery_tests;
 use machiavelli_core::AuditRecord;
 use machiavelli_proto::heraclitus::{AppendRequest, heraclitus_client::HeraclitusClient};
 use std::collections::HashMap;
@@ -59,7 +64,7 @@ impl AuditBridge {
                 .insert("authorization", token.clone());
         }
         let response = self.client.append(request).await?.into_inner();
-        if response.lsn == 0 || response.event_id.is_empty() {
+        if response.event_id.is_empty() {
             return Err("invalid audit acknowledgement".into());
         }
         Ok(AuditAppendReceipt {
@@ -72,9 +77,7 @@ impl AuditBridge {
 }
 /// No public constructor: audit append acknowledgements cannot forge this token.
 /// A future adapter must verify a real SPEC-0089 receipt before adding construction.
-pub struct AdminExecutionToken {
-    _private: (),
-}
+pub use external::AdminExecutionToken;
 
 /// Projection log_0^c(x) for curvature -c, with Poincare ball radius 1/sqrt(c).
 /// Uses the convention inverse to exp_0(v)=tanh(sqrt(c)|v|)v/(sqrt(c)|v|).
@@ -131,6 +134,15 @@ mod rpc_tests {
     }
     #[tonic::async_trait]
     impl Heraclitus for Mock {
+        async fn admin(
+            &self,
+            _: tonic::Request<machiavelli_proto::heraclitus::AdminRequest>,
+        ) -> Result<tonic::Response<machiavelli_proto::heraclitus::AdminResponse>, tonic::Status>
+        {
+            Err(tonic::Status::unimplemented(
+                "ordinary audit mock has no authority",
+            ))
+        }
         async fn append(
             &self,
             request: tonic::Request<AppendRequest>,
