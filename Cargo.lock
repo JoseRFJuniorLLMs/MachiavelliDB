@@ -907,7 +907,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-api"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "axum",
  "hex",
@@ -931,7 +931,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-betrayal"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "machiavelli-core",
  "machiavelli-invariants",
@@ -941,7 +941,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-centaur"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "machiavelli-cfr",
  "machiavelli-core",
@@ -962,7 +962,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-cfr"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "blake3",
  "machiavelli-core",
@@ -974,7 +974,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-cli"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "machiavelli-centaur",
  "machiavelli-cfr",
@@ -989,7 +989,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-core"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "blake3",
  "hex",
@@ -1002,7 +1002,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-cow-arena"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "arc-swap",
  "memmap2",
@@ -1011,7 +1011,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-dikes"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "arc-swap",
  "machiavelli-core",
@@ -1020,7 +1020,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-fog"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "machiavelli-core",
  "machiavelli-symplectic",
@@ -1031,7 +1031,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-fortify"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "blake3",
  "ed25519-dalek",
@@ -1039,7 +1039,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-fortuna"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "rand 0.9.5",
  "rand_chacha",
@@ -1047,7 +1047,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-gpu"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "libc",
  "machiavelli-symplectic",
@@ -1055,7 +1055,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-hamiltonian"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "machiavelli-core",
  "machiavelli-symplectic",
@@ -1065,14 +1065,14 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-invariants"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "machiavelli-core",
 ]
 
 [[package]]
 name = "machiavelli-mandragola"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "machiavelli-core",
  "machiavelli-invariants",
@@ -1080,7 +1080,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-nash"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "machiavelli-core",
  "thiserror",
@@ -1088,15 +1088,15 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-observatory"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 
 [[package]]
 name = "machiavelli-pareto"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 
 [[package]]
 name = "machiavelli-pql"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "machiavelli-core",
  "pest",
@@ -1105,7 +1105,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-proto"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "prost",
  "protox",
@@ -1116,7 +1116,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-storage"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "blake3",
  "machiavelli-cfr",
@@ -1134,7 +1134,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-symplectic"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "proptest",
  "serde",
@@ -1143,7 +1143,7 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-trinitas"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "blake3",
  "ed25519-dalek",
@@ -1164,11 +1164,11 @@ dependencies = [
 
 [[package]]
 name = "machiavelli-vcg"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 
 [[package]]
 name = "machiavelli-wal"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "blake3",
  "tempfile",

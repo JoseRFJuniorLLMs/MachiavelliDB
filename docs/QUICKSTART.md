@@ -164,8 +164,8 @@ os benchmarks CFR e arena. Para incluir o teste ponta a ponta com o Heraclitus:
 wsl -d Ubuntu-24.04 -e bash -lc 'MACHIAVELLI_E2E_HERACLITUS=$HOME/cargo-target/heraclitus/debug/heraclitus-server bash /mnt/d/DEV/MachiavelliDB/scripts/verify.sh'
 ~~~
 
-O binário vem de cargo build -p heraclitus-server no HeraclitusDB com o protocolo
-external-intent-v1. O script arranca uma instância própria (pasta temporária,
+O binário vem de cargo build -p heraclitus-server no HeraclitusDB 3.0.6 ou posterior
+(protocolo external-intent-v1). O script arranca uma instância própria (pasta temporária,
 portas aleatórias em 127.0.0.1, token gerado) e nunca o serviço heraclitus do
 operador. Binários: $HOME/cargo-target/machiavelli/release/machiavelli-server e
 machiavelli. CUDA: scripts/cuda.sh (sai com 77 se não houver nvcc/GPU no WSL).
@@ -177,7 +177,8 @@ da arena mediu 152 µs de mediana contra 2,2 µs no ext4.
 
 ## Ações táticas autorizadas pelo Heraclitus
 
-POST /actions só existe quando o servidor arranca com:
+POST /actions só executa quando o servidor arranca com as variáveis abaixo; sem elas
+responde 503. Exige HeraclitusDB 3.0.6 ou posterior.
 - HERACLITUS_ENDPOINT: http://127.0.0.1:PORTA (gRPC do Heraclitus, só loopback).
 - HERACLITUS_TOKEN: credencial do Heraclitus, 32+ caracteres ASCII. As operações
   external-*-v1 exigem hoje o papel Admin; ainda não há um papel dedicado.

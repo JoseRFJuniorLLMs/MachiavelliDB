@@ -67,8 +67,9 @@ Há uma implementação operacional local e componentes experimentais com limite
   Sintaxe JavaScript verificada; renderização, cobertura completa e 60fps não qualificados.
 - Cliente gRPC Heraclitus Append com autenticação e idempotência, testado em mock local.
   Append comum não é recibo Merkle nem AdminIntent.
-- Protocolo external-intent-v1 no HeraclitusDB (alteração local, ainda não commitada
-  nesse repositório): external-intent-v1, external-status-v1 e external-result-v1
+- Protocolo external-intent-v1 no HeraclitusDB 3.0.6 (PR #42 desse repositório; o
+  MachiavelliDB 1.0.0-alpha.2 exige essa versão ou posterior): external-intent-v1,
+  external-status-v1 e external-result-v1
   pelo RPC Admin, gravados com execute_admin/DurableIntent, isolados por tenant e
   principal, idempotentes e recusados para a mesma chave com outro conteúdo.
   O recibo traz intenção, principal, tenant e intent_lsn; não traz prova Merkle.
@@ -157,9 +158,9 @@ na reabertura. Isso qualifica a alpha local; não os gates físicos de produçã
 2. Quórum e chaves: hoje vêm de um ficheiro do operador (MACHIAVELLI_QUORUM_FILE),
    sem rotação, persistência no banco nem roles. Créditos, BETRAY e diques são
    atómicos no banco local; nada disso move recursos fora dele.
-3. Heraclitus: publicar external-intent-v1 num PR próprio do HeraclitusDB; criar um
-   papel dedicado (hoje o token do Machiavelli precisa de Admin, que dá acesso a
-   todas as operações administrativas); devolver e verificar prova Merkle do
+3. Heraclitus: o external-intent-v1 saiu na 3.0.6. Falta criar um papel dedicado
+   (hoje o token do Machiavelli precisa de Admin, que dá acesso a todas as
+   operações administrativas); devolver e verificar prova Merkle do
    intent_lsn; suportar nós replicados (execute_admin recusa-se em cluster Raft).
    O Machiavelli confia no canal loopback e no token, não numa prova criptográfica.
 4. Diques: o plano só dispara na sequência exata da criação +3; qualquer escrita
